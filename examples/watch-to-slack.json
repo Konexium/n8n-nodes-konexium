@@ -1,0 +1,68 @@
+{
+  "name": "Konexium Watch change to Slack",
+  "nodes": [
+    {
+      "id": "watch",
+      "name": "Watch change",
+      "type": "n8n-nodes-konexium.konexiumTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "webhookId": "00000000-0000-4000-8000-000000009999",
+      "parameters": {
+        "event": "monitoring.change_confirmed"
+      },
+      "credentials": {
+        "konexiumApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Konexium sandbox placeholder"
+        }
+      }
+    },
+    {
+      "id": "slack",
+      "name": "Notify Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [260, 0],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_SLACK_CHANNEL_ID"
+        },
+        "text": "={{\"Konexium Watch change: \" + $json.data.kind + \"\\nCompany: \" + $json.data.companyId + \"\\nWatch: \" + $json.data.watchId + \"\\nChange: \" + ($json.data.changeId || \"see Konexium\") + \"\\nEvent: \" + $json.webhookId}}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Slack placeholder"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Watch change": {
+      "main": [
+        [
+          {
+            "node": "Notify Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

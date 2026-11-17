@@ -1,0 +1,191 @@
+{
+  "name": "Supplier checks from Google Sheets",
+  "nodes": [
+    {
+      "id": "manual",
+      "name": "Run supplier checks",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "read",
+      "name": "Read suppliers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [240, 0],
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Suppliers"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Google Sheets placeholder"
+        }
+      }
+    },
+    {
+      "id": "check",
+      "name": "Check supplier",
+      "type": "n8n-nodes-konexium.konexium",
+      "typeVersion": 1,
+      "position": [480, 0],
+      "parameters": {
+        "resource": "company",
+        "operation": "check",
+        "companyName": "={{$json[\"Company Name\"]}}",
+        "country": "={{$json.Country}}",
+        "sector": "={{$json.Sector}}",
+        "options": {
+          "website": "={{$json.Website || \"\"}}"
+        }
+      },
+      "credentials": {
+        "konexiumApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Konexium sandbox placeholder"
+        }
+      }
+    },
+    {
+      "id": "write",
+      "name": "Write verdict and sources",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [720, 0],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Suppliers"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Supplier ID": "={{$(\"Read suppliers\").item.json[\"Supplier ID\"]}}",
+            "Verdict": "={{$json.rows[0].outcome}}",
+            "Explanation": "={{$json.rows[0].explanation || \"\"}}",
+            "Sources": "={{[...new Set(($json.rows[0].verdicts || []).map(v => v.url).filter(Boolean).concat($json.rows[0].registry && $json.rows[0].registry.source_url ? [$json.rows[0].registry.source_url] : []))].join(\"\\n\")}}",
+            "Credits": "={{$json.actualCredits}}"
+          },
+          "matchingColumns": ["Supplier ID"],
+          "schema": [
+            {
+              "id": "Supplier ID",
+              "displayName": "Supplier ID",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Verdict",
+              "displayName": "Verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Explanation",
+              "displayName": "Explanation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sources",
+              "displayName": "Sources",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Credits",
+              "displayName": "Credits",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Google Sheets placeholder"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run supplier checks": {
+      "main": [
+        [
+          {
+            "node": "Read suppliers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read suppliers": {
+      "main": [
+        [
+          {
+            "node": "Check supplier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check supplier": {
+      "main": [
+        [
+          {
+            "node": "Write verdict and sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

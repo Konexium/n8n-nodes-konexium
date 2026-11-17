@@ -1,0 +1,64 @@
+{
+  "name": "n8n-nodes-konexium",
+  "version": "0.1.0",
+  "description": "Evidence-backed African company checks and Watch alerts with Konexium",
+  "license": "MIT",
+  "author": {
+    "name": "Konexium",
+    "email": "hello@konexiumai.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Konexium/n8n-nodes-konexium.git"
+  },
+  "homepage": "https://github.com/Konexium/n8n-nodes-konexium#readme",
+  "bugs": {
+    "url": "https://github.com/Konexium/n8n-nodes-konexium/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "n8n-community-node-package",
+    "konexium",
+    "company",
+    "verification",
+    "africa"
+  ],
+  "files": [
+    "dist",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.16"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.cjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check:n8n": "n8n-node lint",
+    "test": "npm run build && node --test test/*.test.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "0.56.4",
+    "@types/node": "22.15.30",
+    "n8n-workflow": "2.16.0",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": { "n8n-workflow": "*" },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/KonexiumApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Konexium/Konexium.node.js",
+      "dist/nodes/Konexium/KonexiumTrigger.node.js"
+    ]
+  }
+}
