@@ -37,8 +37,10 @@ export class Konexium implements INodeType {
     icon: { light: 'file:konexium.svg', dark: 'file:konexium.svg' },
     group: ['transform'],
     version: 1,
-    // Explicit opt-out: the current host types express this as undefined, not false.
-    usableAsTool: undefined,
+    // AI agents may call Check and Watch. Spend stays bounded: a Check holds at
+    // most 16 credits, the API stops at zero credits, and identical calls in one
+    // execution share a derived idempotency key.
+    usableAsTool: true,
     subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
     description:
       'Check African companies with sourced evidence and manage Watch',

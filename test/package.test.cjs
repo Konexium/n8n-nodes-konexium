@@ -105,3 +105,10 @@ test('published runtime has no filesystem, environment, SDK or direct HTTP acces
     );
   }
 });
+
+test('action node is usable as an AI agent tool; trigger is not', () => {
+  const { Konexium } = require('../dist/nodes/Konexium/Konexium.node.js');
+  const { KonexiumTrigger } = require('../dist/nodes/Konexium/KonexiumTrigger.node.js');
+  assert.equal(new Konexium().description.usableAsTool, true);
+  assert.equal(new KonexiumTrigger().description.usableAsTool, undefined);
+});

@@ -25,6 +25,10 @@ Each live Check reserves up to **16 credits**: Ready costs 16, not matched/needs
 
 Check polls every 3 seconds, with a 120-second total wait (10–300 configurable). A timeout reports the run UUID; server work continues. Reuse the key or retrieve that run with HTTP Request. Live latency is unmeasured; sandbox completes after 2 seconds. Programmatic style handles per-input start/poll processing and the trigger; n8n prefers declarative for single-call REST actions.
 
+## Use as an AI agent tool
+
+The Konexium node can be attached to n8n's AI Agent as a tool, so an agent can check a supplier before a workflow pays, ships or signs. Agent calls spend credits like any other Check (at most 16 each); the API stops at zero credits, and identical calls within one execution reuse the same idempotency key. Use a `kxm_test_` sandbox key while you build the agent.
+
 ## Recipes
 
 Import either inactive JSON file from `examples/`, replace placeholder credentials/IDs, and review before activation:

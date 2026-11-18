@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-konexium",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Evidence-backed African company checks and Watch alerts with Konexium",
   "license": "MIT",
   "author": {
