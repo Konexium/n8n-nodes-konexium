@@ -19,13 +19,22 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      # Trusted publishing (no stored token) needs npm 11.5.1 or later.
-      - run: npm install -g npm@11.5.1
+      # Staged publishing (and trusted publishing) need a recent npm CLI.
+      - run: npm install -g npm@11.21.1
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run lint
-      - run: npm publish --provenance --access public
+      # A brand-new package can only be staged: its first version waits on
+      # npmjs.com until a maintainer approves it with 2FA. Later versions
+      # publish directly through the trusted publisher.
+      - name: Publish (or stage the first version)
+        run: |
+          if npm view "$(node -p "require('./package.json').name")" version >/dev/null 2>&1; then
+            npm publish --provenance --access public
+          else
+            npm stage publish --provenance --access public
+          fi
         env:
-          # Only for the very first release, if npm does not yet allow a trusted
-          # publisher on a package that doesn't exist. Delete the secret afterwards.
+          # Only for the first release. Delete the secret once the trusted
+          # publisher is linked on npmjs.com.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
