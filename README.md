@@ -29,6 +29,14 @@ Check polls every 3 seconds, with a 120-second total wait (10–300 configurable
 
 The Konexium node can be attached to n8n's AI Agent as a tool, so an agent can check a supplier before a workflow pays, ships or signs. Agent calls spend credits like any other Check (at most 16 each); the API stops at zero credits, and identical calls within one execution reuse the same idempotency key. Use a `kxm_test_` sandbox key while you build the agent.
 
+Country name or two-letter ISO code, for example Nigeria or NG. All 54 African countries also accept alpha-3 codes (such as NGA), ignoring case, accents and surrounding whitespace. Common names such as Ivory Coast, Cape Verde and Swaziland work. Use Democratic Republic of the Congo / DRC / CD or Republic of the Congo / Congo-Brazzaville / CG; bare Congo is ambiguous. Guinea means GN and Sudan means SD; Guinea-Bissau, Equatorial Guinea and South Sudan are separate exact names. Other two-letter codes retain their existing API behaviour; non-African names and alpha-3 codes are not mapped. Western Sahara names are not mapped pending confirmation of backend support; EH retains its existing passthrough behaviour.
+
+## Release notes
+
+### 0.1.3 (unpublished)
+
+- Accept African country names, alpha-3 codes and common variants in Check, sending alpha-2 codes to the API. Existing two-letter code behaviour is preserved; unknown or ambiguous names fail before an API request.
+
 ## Recipes
 
 Import either inactive JSON file from `examples/`, replace placeholder credentials/IDs, and review before activation:

@@ -131,6 +131,68 @@ test('name-only Check omits website and preserves each input pairing', async () 
   );
 });
 
+test('Check sends normalised countries in rows and criteria and derives the same retry key', async () => {
+  for (const [inputs, expected] of [
+    [['ng', 'NG', 'NGA', ' Nigeria '], 'NG'],
+    [["Côte d’Ivoire", 'Ivory Coast', 'CIV', 'ci'], 'CI'],
+    [['DRC', 'DR Congo', 'Congo-Kinshasa', 'COD', 'CD'], 'CD'],
+    [['Republic of the Congo', 'Congo-Brazzaville', 'COG', 'CG'], 'CG'],
+    [['São Tomé and Príncipe', 'STP', 'ST'], 'ST'],
+    [[' us ', 'US'], 'US'],
+  ]) {
+    const keys = new Set();
+    for (const country of inputs) {
+      const { ctx, calls } = context({ country, idempotencyKey: '' });
+      ctx.getExecutionId = () => 'country-test';
+      await new Konexium().execute.call(ctx);
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].body.rows[0].country, expected);
+      assert.deepEqual(calls[0].body.criteria.countries, [expected]);
+      assert.equal(calls[0].headers['Idempotency-Key'], calls[0].body.idempotencyKey);
+      keys.add(calls[0].body.idempotencyKey);
+    }
+    assert.equal(keys.size, 1, `equivalent country inputs must reuse the ${expected} key`);
+  }
+});
+
+test('invalid or ambiguous countries fail before HTTP with actionable messages', async () => {
+  for (const country of ['Atlantis', 'Congo', '', null]) {
+    const { ctx, calls } = context({ country });
+    await assert.rejects(new Konexium().execute.call(ctx), (error) => {
+      if (country === 'Congo') {
+        assert.match(error.message, /Democratic Republic of the Congo \(CD\)/);
+        assert.match(error.message, /Republic of the Congo \(CG\)/);
+      } else {
+        assert.equal(error.message, `Country not recognised: ${String(country)}. Use a country name such as Nigeria or a two-letter code such as NG.`);
+      }
+      return true;
+    });
+    assert.equal(calls.length, 0);
+  }
+});
+
+test('continue-on-fail retains country errors and processes the next country', async () => {
+  const { ctx, calls } = context(
+    { country: (i) => i === 0 ? 'Congo' : 'Nigeria' }, [ready], 2, true,
+  );
+  const [result] = await new Konexium().execute.call(ctx);
+  assert.match(result[0].json.error, /Country is ambiguous: Congo/);
+  assert.deepEqual(result[0].pairedItem, { item: 0 });
+  assert.deepEqual(result[1], { json: ready, pairedItem: { item: 1 } });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].body.rows[0].country, 'NG');
+});
+
+test('country field and AI tool descriptions advertise country names', () => {
+  const { description } = new Konexium();
+  const guidance = 'Country name or two-letter ISO code, for example Nigeria or NG';
+  assert.ok(description.description.includes(guidance));
+  const country = description.properties.find((p) => p.name === 'country');
+  assert.equal(country.description, guidance);
+  const check = description.properties.find((p) => p.name === 'operation').options.find((o) => o.value === 'check');
+  assert.ok(check.description.includes(guidance));
+});
+
 async function settleWithClock(t, promise, count = 110) {
   let done = false;
   let result;
@@ -227,7 +289,7 @@ test('Check keeps needs-review and unavailable evidence outcomes as API data', a
 
 test('invalid Check parameters fail before HTTP requests', async () => {
   for (const params of [
-    { country: 'Nigeria' },
+    { country: 'Not a country' },
     { sector: '' },
     { idempotencyKey: 'short' },
     { idempotencyKey: 'bad key with spaces' },

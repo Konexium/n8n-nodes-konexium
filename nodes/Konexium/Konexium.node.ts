@@ -7,6 +7,7 @@ import type {
   INodeType,
   INodeTypeDescription,
 } from 'n8n-workflow';
+import { normaliseCountry } from './country';
 import {
   apiRequest,
   object,
@@ -43,7 +44,7 @@ export class Konexium implements INodeType {
     usableAsTool: true,
     subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
     description:
-      'Check African companies with sourced evidence and manage Watch',
+      'Check African companies with sourced evidence and manage Watch. Country name or two-letter ISO code, for example Nigeria or NG',
     defaults: { name: 'Konexium' },
     inputs: [NodeConnectionTypes.Main],
     outputs: [NodeConnectionTypes.Main],
@@ -72,7 +73,7 @@ export class Konexium implements INodeType {
             name: 'Check',
             value: 'check',
             description:
-              'Check one company and wait for its evidence-backed result',
+              'Check one company and wait for its evidence-backed result. Country name or two-letter ISO code, for example Nigeria or NG.',
             action: 'Check a company',
           },
         ],
@@ -123,9 +124,9 @@ export class Konexium implements INodeType {
         type: 'string',
         default: '',
         required: true,
-        placeholder: 'NG',
+        placeholder: 'Nigeria or NG',
         displayOptions: { show: { resource: ['company'] } },
-        description: 'Two-letter ISO country code',
+        description: 'Country name or two-letter ISO code, for example Nigeria or NG',
       },
       {
         displayName: 'Sector',
@@ -218,17 +219,10 @@ export class Konexium implements INodeType {
             'Company name',
             200,
           );
-          const country = requireText(
+          const country = normaliseCountry(
             this,
             this.getNodeParameter('country', i),
-            'Country',
-            2,
-          ).toUpperCase();
-          if (!/^[A-Z]{2}$/.test(country))
-            throw new NodeOperationError(
-              this.getNode(),
-              'Country must be a two-letter ISO code.',
-            );
+          );
           const sector = requireText(
             this,
             this.getNodeParameter('sector', i),

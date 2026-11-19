@@ -56,7 +56,7 @@ test('both recipes are inactive, connected, and have placeholder credentials', (
 
 test('strict lint configuration matches the pinned official n8n CLI template', () => {
   const normalize = (text) => text.replace(/\s+/g, ' ').trim();
-  const official = fs.readFileSync(path.join(root, 'node_modules/@n8n/node-cli/dist/template/templates/shared/default/eslint.config.mjs'), 'utf8');
+  const official = fs.readFileSync(path.resolve(path.dirname(require.resolve('@n8n/node-cli/eslint')), '../template/templates/shared/default/eslint.config.mjs'), 'utf8');
   assert.equal(normalize(fs.readFileSync(path.join(root, 'eslint.config.mjs'), 'utf8')), normalize(official));
 });
 
